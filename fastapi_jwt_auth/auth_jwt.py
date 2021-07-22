@@ -1,5 +1,7 @@
-import jwt, re, uuid, hmac
-from jwt.algorithms import requires_cryptography, has_crypto
+import hmac
+import jwt
+import re
+import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Union, Sequence
 from fastapi import Request, Response, WebSocket
@@ -14,16 +16,23 @@ from fastapi_jwt_auth.exceptions import (
     RefreshTokenRequired,
     FreshTokenRequired
 )
+from jwt.algorithms import requires_cryptography, has_crypto
+
 
 class AuthJWT(AuthConfig):
-    def __init__(self,req: Request = None, res: Response = None):
+    def __init__(self, req: Request = None, res: Response = None, refresh_token: str = None):
         """
         Get jwt header from incoming request or get
         request and response object if jwt in the cookie
 
         :param req: all incoming request
         :param res: response from endpoint
+        :param refresh_token: refresh token if passed in body
         """
+        if refresh_token is not None:
+            self._token = refresh_token
+            return
+
         if res and self.jwt_in_cookies:
             self._response = res
 
@@ -34,9 +43,10 @@ class AuthJWT(AuthConfig):
             # get jwt in headers when headers in token location
             if self.jwt_in_headers:
                 auth = req.headers.get(self._header_name.lower())
-                if auth: self._get_jwt_from_headers(auth)
+                if auth:
+                    self._get_jwt_from_headers(auth)
 
-    def _get_jwt_from_headers(self,auth: str) -> "AuthJWT":
+    def _get_jwt_from_headers(self, auth: str) -> None:
         """
         Get token from the headers
 
@@ -51,19 +61,19 @@ class AuthJWT(AuthConfig):
             # <HeaderName>: <JWT>
             if len(parts) != 1:
                 msg = "Bad {} header. Expected value '<JWT>'".format(header_name)
-                raise InvalidHeaderError(status_code=422,message=msg)
+                raise InvalidHeaderError(status_code=422, message=msg)
             self._token = parts[0]
         else:
             # <HeaderName>: <HeaderType> <JWT>
-            if not re.match(r"{}\s".format(header_type),auth) or len(parts) != 2:
-                msg = "Bad {} header. Expected value '{} <JWT>'".format(header_name,header_type)
-                raise InvalidHeaderError(status_code=422,message=msg)
+            if not re.match(r"{}\s".format(header_type), auth) or len(parts) != 2:
+                msg = "Bad {} header. Expected value '{} <JWT>'".format(header_name, header_type)
+                raise InvalidHeaderError(status_code=422, message=msg)
             self._token = parts[1]
 
     def _get_jwt_identifier(self) -> str:
         return str(uuid.uuid4())
 
-    def _get_int_from_datetime(self,value: datetime) -> int:
+    def _get_int_from_datetime(self, value: datetime) -> int:
         """
         :param value: datetime with or without timezone, if don't contains timezone
                       it will managed as it is UTC
