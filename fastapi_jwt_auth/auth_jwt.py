@@ -24,7 +24,6 @@ class BodyToken(BaseModel):
     refresh_token: str = None
 
 
-
 class AuthJWT(AuthConfig):
     def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
         """
@@ -38,7 +37,6 @@ class AuthJWT(AuthConfig):
         if refresh_token is not None:
             self._token = refresh_token.refresh_token
             self._token_location = {'body'}
-            print(self._token)
             return
 
         if res and self.jwt_in_cookies:
@@ -788,11 +786,12 @@ class AuthJWT(AuthConfig):
                 if not self._token and self.jwt_in_cookies:
                     self._verify_and_get_jwt_in_cookies('refresh', self._request)
             else:
+                if 'body' in self._token_location:
+                    self._verify_jwt_in_request(self._token, 'refresh', 'body')
                 if self.jwt_in_headers:
                     self._verify_jwt_in_request(self._token, 'refresh', 'headers')
                 if self.jwt_in_cookies:
                     self._verify_and_get_jwt_in_cookies('refresh', self._request)
-                self._verify_jwt_in_request(self._token, 'refresh', 'body')
 
     def fresh_jwt_required(
         self,
