@@ -23,7 +23,13 @@ from pydantic import BaseModel
 class BodyToken(BaseModel):
     refresh_token: Optional[str] = None
 
-
+class AuthJWTRefresh(AuthJWT):
+    def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
+        if refresh_token is not None:
+            self._token = refresh_token.refresh_token
+            self._token_location = {'body'}
+            return None
+        AuthJWT.__init__(self)
 class AuthJWT(AuthConfig):
     def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
         """
@@ -34,10 +40,6 @@ class AuthJWT(AuthConfig):
         :param res: response from endpoint
         :param refresh_token: refresh token if passed in body
         """
-        if refresh_token is not None:
-            self._token = refresh_token.refresh_token
-            self._token_location = {'body'}
-            return None
 
         if res and self.jwt_in_cookies:
             self._response = res
