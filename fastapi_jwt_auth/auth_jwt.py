@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 
 class BodyToken(BaseModel):
-    refresh_token: str = None
+    refresh_token: Optional[str] = None
 
 
 class AuthJWT(AuthConfig):
