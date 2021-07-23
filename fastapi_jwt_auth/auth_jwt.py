@@ -37,6 +37,7 @@ class AuthJWT(AuthConfig):
         """
         if refresh_token is not None:
             self._token = refresh_token.refresh_token
+            print(self._token)
             return
 
         if res and self.jwt_in_cookies:
@@ -770,20 +771,22 @@ class AuthJWT(AuthConfig):
                            its must be passing csrf_token manually and can achieve by Query Url or Path
         """
         if auth_from == "websocket":
-            if websocket: self._verify_and_get_jwt_in_cookies('refresh',websocket,csrf_token)
-            else: self._verify_jwt_in_request(token,'refresh','websocket')
+            if websocket:
+                self._verify_and_get_jwt_in_cookies('refresh', websocket, csrf_token)
+            else:
+                self._verify_jwt_in_request(token, 'refresh', 'websocket')
 
         if auth_from == "request":
             if len(self._token_location) == 2:
                 if self._token and self.jwt_in_headers:
-                    self._verify_jwt_in_request(self._token,'refresh','headers')
+                    self._verify_jwt_in_request(self._token, 'refresh', 'headers')
                 if not self._token and self.jwt_in_cookies:
-                    self._verify_and_get_jwt_in_cookies('refresh',self._request)
+                    self._verify_and_get_jwt_in_cookies('refresh', self._request)
             else:
                 if self.jwt_in_headers:
-                    self._verify_jwt_in_request(self._token,'refresh','headers')
+                    self._verify_jwt_in_request(self._token, 'refresh', 'headers')
                 if self.jwt_in_cookies:
-                    self._verify_and_get_jwt_in_cookies('refresh',self._request)
+                    self._verify_and_get_jwt_in_cookies('refresh', self._request)
 
     def fresh_jwt_required(
         self,
