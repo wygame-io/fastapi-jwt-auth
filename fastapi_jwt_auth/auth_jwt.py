@@ -23,22 +23,15 @@ from pydantic import BaseModel
 class BodyToken(BaseModel):
     refresh_token: Optional[str] = None
 
-class AuthJWTRefresh(AuthJWT):
-    def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
-        if refresh_token is not None:
-            self._token = refresh_token.refresh_token
-            self._token_location = {'body'}
-            return None
-        AuthJWT.__init__(self)
+
 class AuthJWT(AuthConfig):
-    def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
+    def __init__(self, req: Request = None, res: Response = None):
         """
         Get jwt header from incoming request or get
         request and response object if jwt in the cookie
 
         :param req: all incoming request
         :param res: response from endpoint
-        :param refresh_token: refresh token if passed in body
         """
 
         if res and self.jwt_in_cookies:
@@ -862,7 +855,7 @@ class AuthJWT(AuthConfig):
             return self._verified_token(self._token)['sub']
         return None
 
-    def get_unverified_jwt_headers(self,encoded_token: Optional[str] = None) -> dict:
+    def get_unverified_jwt_headers(self, encoded_token: Optional[str] = None) -> dict:
         """
         Returns the Headers of an encoded JWT without verifying the actual signature of JWT
 
@@ -872,3 +865,13 @@ class AuthJWT(AuthConfig):
         encoded_token = encoded_token or self._token
 
         return jwt.get_unverified_header(encoded_token)
+
+
+class AuthJWTRefresh(AuthJWT):
+    def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
+        if refresh_token is not None:
+            self._token = refresh_token.refresh_token
+            self._token_location = {'body'}
+
+        else:
+            AuthJWT.__init__(self, req, res)
