@@ -37,7 +37,7 @@ class AuthJWT(AuthConfig):
         if refresh_token is not None:
             self._token = refresh_token.refresh_token
             self._token_location = {'body'}
-            return
+            return self
 
         if res and self.jwt_in_cookies:
             self._response = res
