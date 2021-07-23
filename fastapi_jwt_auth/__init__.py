@@ -3,3 +3,4 @@
 __version__ = "0.5.0"
 
 from .auth_jwt import AuthJWT
+from .auth_jwt import AuthJWTRefresh
