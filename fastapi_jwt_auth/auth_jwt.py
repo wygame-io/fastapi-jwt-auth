@@ -17,10 +17,16 @@ from fastapi_jwt_auth.exceptions import (
     FreshTokenRequired
 )
 from jwt.algorithms import requires_cryptography, has_crypto
+from pydantic import BaseModel
+
+
+class BodyToken(BaseModel):
+    refresh_token: str = None
+
 
 
 class AuthJWT(AuthConfig):
-    def __init__(self, req: Request = None, res: Response = None, refresh_token: str = None):
+    def __init__(self, req: Request = None, res: Response = None, refresh_token: BodyToken = None):
         """
         Get jwt header from incoming request or get
         request and response object if jwt in the cookie
@@ -30,7 +36,7 @@ class AuthJWT(AuthConfig):
         :param refresh_token: refresh token if passed in body
         """
         if refresh_token is not None:
-            self._token = refresh_token
+            self._token = refresh_token.refresh_token
             return
 
         if res and self.jwt_in_cookies:
